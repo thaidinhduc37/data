@@ -1,11 +1,11 @@
 // config/titles.js - Page Titles
 const titles = {
   // Main pages
-  home: 'Trang chủ',
+  dashboard: 'Trang chủ',
   blogs: 'Blogs',
   contact: 'Liên hệ',
   about: 'Giới thiệu',
-  privacyPolicy: 'Chính sách bảo mật',
+  posts: 'Bài viết',
   
   // Posts management
   posts: 'Quản lý Posts',

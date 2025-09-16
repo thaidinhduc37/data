@@ -8,7 +8,7 @@ routes,
     password: process.env.REACT_APP_DIRECTUS_PASSWORD || ''
   },
   app: {
-    name: process.env.REACT_APP_APP_NAME || 'Directus Frontend',
+    name: process.env.REACT_APP_APP_NAME || 'Hệ thông quản lý dữ liệu dùng chung',
     version: process.env.REACT_APP_APP_VERSION || '1.0.0'
   },
   dev: {

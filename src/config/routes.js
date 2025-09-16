@@ -2,10 +2,11 @@
 const routes = {
   // Main pages - theo Directus structure
   home: '/',
+  dashboard: '/trang-chu',
   blogs: '/blogs',
   contact: '/contact',
   about: '/about',
-  privacyPolicy: '/privacy-policy',
+  posts: '/posts',
   
   // Posts management (có sub-routes)
   posts: '/posts',

@@ -1,8 +1,17 @@
-// api/directus.js - Directus Client Configuration
+// api/directus.js - Directus Client Configuration với CORS fix
 import { createDirectus, rest, authentication, readItems, createItem, updateItem, deleteItem, uploadFiles } from '@directus/sdk';
 import config from '../config';
-// Directus instance configuration
-const DIRECTUS_URL = config.directus.apiUrl;
+
+// Directus instance configuration với proxy support
+const getDirectusURL = () => {
+  if (process.env.NODE_ENV === 'development') {
+    // Trong development, sử dụng proxy để tránh CORS
+    return '/api/proxy';
+  }
+  return config.directus.apiUrl;
+};
+
+const DIRECTUS_URL = getDirectusURL();
 
 // Create Directus client
 const directus = createDirectus(DIRECTUS_URL)
@@ -13,24 +22,36 @@ const directus = createDirectus(DIRECTUS_URL)
 let currentUser = null;
 let authToken = null;
 
-
+/**
+ * Directus Client với CORS handling
+ */
 class DirectusClient {
   constructor() {
     this.client = directus;
     this.isConnected = false;
     this.baseURL = DIRECTUS_URL;
+    this.realBaseURL = config.directus.baseUrl; // URL gốc cho assets
   }
 
-
+  /**
+   * Lấy Directus client instance
+   */
   getClient() {
     return this.client;
   }
 
   /**
-   * Lấy base URL
+   * Lấy base URL (có thể là proxy)
    */
   getBaseURL() {
     return this.baseURL;
+  }
+
+  /**
+   * Lấy real base URL (không proxy) cho assets
+   */
+  getRealBaseURL() {
+    return this.realBaseURL;
   }
 
   /**
@@ -48,12 +69,11 @@ class DirectusClient {
   }
 
   /**
-   * Set token manually (nếu cần)
+   * Set token manually
    */
   setToken(token) {
     authToken = token;
     this.isConnected = !!token;
-    // Set token cho client
     if (token) {
       this.client.setToken(token);
     }
@@ -130,14 +150,18 @@ class DirectusClient {
   }
 
   /**
-   * Test connection đến Directus
+   * Test connection với CORS handling
    */
   async testConnection() {
     try {
       console.log('🔍 Testing connection to Directus...');
       
-    
-      const response = await fetch(`${this.baseURL}/admin`);
+      // Thử gọi API server info
+      const url = process.env.NODE_ENV === 'development' 
+        ? '/api/proxy/server/info' 
+        : `${this.baseURL}/server/info`;
+        
+      const response = await fetch(url);
       
       if (response.ok) {
         const serverInfo = await response.json();
@@ -159,15 +183,19 @@ class DirectusClient {
   }
 
   /**
-   * Lấy danh sách collections có sẵn (nếu có quyền)
+   * Lấy danh sách collections với proxy support
    */
   async getAvailableCollections() {
     try {
-      const response = await fetch(`${this.baseURL}/admin/collections`, {
-        headers: this.getToken() ? {
-          'Authorization': `Bearer ${this.getToken()}`
-        } : {}
-      });
+      const url = process.env.NODE_ENV === 'development' 
+        ? '/api/proxy/collections' 
+        : `${this.baseURL}/collections`;
+        
+      const headers = this.getToken() ? {
+        'Authorization': `Bearer ${this.getToken()}`
+      } : {};
+
+      const response = await fetch(url, { headers });
 
       if (response.ok) {
         const data = await response.json();
@@ -197,27 +225,27 @@ class DirectusClient {
   }
 
   /**
-   * Helper method để tạo URL cho media files
+   * Helper method để tạo URL cho media files (dùng real URL)
    */
   getFileURL(fileId, options = {}) {
     if (!fileId) return null;
     
     const params = new URLSearchParams();
     
-    // Thêm transform options nếu có
     if (options.width) params.append('width', options.width);
     if (options.height) params.append('height', options.height);
     if (options.quality) params.append('quality', options.quality);
     if (options.format) params.append('format', options.format);
     
     const queryString = params.toString();
-    const url = `${this.baseURL}/assets/${fileId}`;
+    // Sử dụng real URL cho assets
+    const url = `${this.realBaseURL}/assets/${fileId}`;
     
     return queryString ? `${url}?${queryString}` : url;
   }
 
   /**
-   * Helper method để format date theo locale Vietnam
+   * Helper method để format date
    */
   formatDate(dateString, options = {}) {
     if (!dateString) return '';
@@ -235,15 +263,16 @@ class DirectusClient {
   }
 
   /**
-   * Debug method để log thông tin client
+   * Debug method
    */
   debug() {
     console.log('🔧 Directus Client Debug Info:', {
       baseURL: this.baseURL,
+      realBaseURL: this.realBaseURL,
       isConnected: this.isConnected,
       hasToken: !!authToken,
       currentUser: currentUser?.email || null,
-      tokenPreview: authToken ? `${authToken.substring(0, 10)}...` : null
+      isDevelopment: process.env.NODE_ENV === 'development'
     });
   }
 }

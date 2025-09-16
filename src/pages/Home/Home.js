@@ -1,221 +1,137 @@
-// pages/Home.jsx - Government Legal System Home Page
-import React from 'react';
-import { Link } from 'react-router-dom';
+// pages/Home/Home.js - Simple Home Page
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import classNames from 'classnames/bind';
-import { useDirectus, useAuth } from '../../hooks';
+import { useAuth } from '../../hooks';
 import config from '../../config';
 import styles from './Home.module.scss';
+import images from '../../assets/images';
 
 const cx = classNames.bind(styles);
 
 function Home() {
-  const { collections, isConnected } = useDirectus();
-  const { isLoggedIn, user } = useAuth();
+  const navigate = useNavigate();
+  const { login, isLoading, error } = useAuth();
+  
+  const [loginForm, setLoginForm] = useState({
+    email: '',
+    password: ''
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setLoginForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const result = await login(loginForm.email, loginForm.password);
+    if (result.success) {
+      navigate(config.routes.dashboard);
+    }
+  };
 
   return (
-    <div className={cx('home')}>
-      {/* Header Section */}
+    <div 
+      className={cx('home')}
+      style={{
+        backgroundImage: `url(${images.trongdong})`,
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: '1500px 1500px',
+        backgroundPosition: 'center',
+        backgroundColor: '#fd0000ff',
+      }}
+    >
+       <link 
+                rel="stylesheet" 
+                href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+            />
+      {/* Header với Logo */}
       <div className={cx('header-section')}>
         <div className={cx('container')}>
-          <div className={cx('header-content')}>
-            <div className={cx('logo-section')}>
-              <div className={cx('national-emblem')}>
-                <img href=''/>
-              </div>
-              <div className={cx('title-group')}>
-                <h1 className={cx('main-title')}>
-                  HỆ THỐNG QUẢN LÝ DỮ LIỆU
-                </h1>
-                <p className={cx('subtitle')}>
-                  BỘ CÔNG AN
-                </p>
-                <p className={cx('motto')}>
-                  CÔNG AN TỈNH ĐẮK LẮK
-                </p>
-              </div>
+          <div className={cx('logo-section')}>
+            <div className={cx('national-emblem')}>
+              <img src={images.cand} alt="Công an hiệu" className={cx('emblem-img')} />
+            </div>
+            <div className={cx('title-group')}>
+              <div className={cx('subtitle')}>BỘ CÔNG AN</div>
+              <div className={cx('motto')}>CÔNG AN TỈNH ĐẮK LẮK</div>
+              <h2 className={cx('main-title')}>
+                Hệ thống quản lý dữ liệu dùng chung
+              </h2>
             </div>
           </div>
         </div>
       </div>
 
-      {/* System Status Section */}
-      <div className={cx('status-section')}>
-        <div className={cx('container')}>
-          <h2 className={cx('section-title')}>
-            📊 TRẠNG THÁI HỆ THỐNG
-          </h2>
+      {/* Form đăng nhập */}
+      <div className={cx('login-section')}>
+        <div className={cx('login-card')}>
+          <h2>Đăng nhập hệ thống</h2>
           
-          <div className={cx('status-grid')}>
-            <div className={cx('status-card', { connected: isConnected })}>
-              <div className={cx('status-header')}>
-                <span className={cx('status-icon')}>
-                  {isConnected ? '🟢' : '🔴'}
-                </span>
-                <h3>Kết nối Cơ sở dữ liệu</h3>
-              </div>
-              <div className={cx('status-content')}>
-                <div className={cx('status-value')}>
-                  {isConnected ? 'Hoạt động bình thường' : 'Lỗi kết nối'}
-                </div>
-                <div className={cx('status-detail')}>
-                  Collections: {collections.length}
-                </div>
-              </div>
-            </div>
-
-            <div className={cx('status-card')}>
-              <div className={cx('status-header')}>
-                <span className={cx('status-icon')}>🔐</span>
-                <h3>Bảo mật hệ thống</h3>
-              </div>
-              <div className={cx('status-content')}>
-                <div className={cx('status-value')}>
-                  {isLoggedIn ? 'Đã xác thực' : 'Chưa đăng nhập'}
-                </div>
-                <div className={cx('status-detail')}>
-                  SSL: Được bảo mật
-                </div>
-              </div>
-            </div>
-
-            <div className={cx('status-card')}>
-              <div className={cx('status-header')}>
-                <span className={cx('status-icon')}>⏰</span>
-                <h3>Thời gian hệ thống</h3>
-              </div>
-              <div className={cx('status-content')}>
-                <div className={cx('status-value')}>
-                  {new Date().toLocaleString('vi-VN')}
-                </div>
-                <div className={cx('status-detail')}>
-                  Múi giờ: UTC+7
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {isLoggedIn && user && (
-            <div className={cx('user-welcome')}>
-              <div className={cx('welcome-content')}>
-                <h3>Chào mừng cán bộ</h3>
-                <p>
-                  <strong>{user.first_name || user.email}</strong>
-                </p>
-                <small>Phiên làm việc: {new Date().toLocaleString('vi-VN')}</small>
+          {error && (
+            <div className={cx('alert', 'error')}>
+              <span className={cx('alert-icon')}>❌</span>
+              <div className={cx('alert-content')}>
+                <strong>Đăng nhập thất bại!</strong>
+                <p>{error}</p>
               </div>
             </div>
           )}
-        </div>
-      </div>
 
-      {/* Quick Actions */}
-      <div className={cx('actions-section')}>
-        <div className={cx('container')}>
-          <h2 className={cx('section-title')}>
-            🚀 TRUY CẬP NHANH
-          </h2>
-          
-          <div className={cx('actions-grid')}>
-            {isLoggedIn ? (
-              <>
-                <Link to={config.routes.dashboard} className={cx('action-card', 'primary')}>
-                  <div className={cx('action-icon')}>📊</div>
-                  <h3>Bảng điều khiển</h3>
-                  <p>Theo dõi hoạt động và thống kê hệ thống</p>
-                </Link>
-                
-                <Link to={config.routes.posts} className={cx('action-card', 'secondary')}>
-                  <div className={cx('action-icon')}>📄</div>
-                  <h3>Quản lý văn bản</h3>
-                  <p>Tạo, chỉnh sửa và quản lý văn bản pháp lý</p>
-                </Link>
-                
-                <Link to={config.routes.blogs} className={cx('action-card', 'tertiary')}>
-                  <div className={cx('action-icon')}>📚</div>
-                  <h3>Thông tin pháp luật</h3>
-                  <p>Cập nhật tin tức và thông tin pháp luật mới</p>
-                </Link>
-              </>
-            ) : (
-              <div className={cx('login-prompt')}>
-                <div className={cx('prompt-content')}>
-                  <h3>⚠️ YÊU CẦU ĐĂNG NHẬP</h3>
-                  <p>Vui lòng đăng nhập để truy cập các chức năng của hệ thống</p>
-                  <Link to={config.routes.login} className={cx('login-btn')}>
-                    🔐 ĐĂNG NHẬP HỆ THỐNG
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* System Features */}
-      <div className={cx('features-section')}>
-        <div className={cx('container')}>
-          <h2 className={cx('section-title')}>
-            ⭐ TÍNH NĂNG HỆ THỐNG
-          </h2>
-          
-          <div className={cx('features-grid')}>
-            <div className={cx('feature-item')}>
-              <div className={cx('feature-icon')}>🛡️</div>
-              <h3>Bảo mật cao</h3>
-              <p>Đảm bảo an ninh thông tin theo tiêu chuẩn Nhà nước</p>
+          <form onSubmit={handleSubmit} className={cx('form')}>
+            <div className={cx('form-group')}>
+              <label htmlFor="email" className={cx('label')}>
+                <i class="fa-regular fa-envelope"></i> Tài khoản
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                value={loginForm.email}
+                onChange={handleChange}
+                className={cx('input')}
+                placeholder="Nhập email đăng nhập"
+                required
+              />
             </div>
 
-            <div className={cx('feature-item')}>
-              <div className={cx('feature-icon')}>📋</div>
-              <h3>Quản lý văn bản</h3>
-              <p>Hệ thống quản lý văn bản pháp quy chuyên nghiệp</p>
+            <div className={cx('form-group')}>
+              <label htmlFor="password" className={cx('label')}>
+                <i class="fa-solid fa-lock"></i> Mật khẩu
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={loginForm.password}
+                onChange={handleChange}
+                className={cx('input')}
+                placeholder="Nhập mật khẩu"
+                required
+              />
             </div>
 
-            <div className={cx('feature-item')}>
-              <div className={cx('feature-icon')}>🔍</div>
-              <h3>Tra cứu thông tin</h3>
-              <p>Tra cứu nhanh chóng các văn bản pháp luật</p>
-            </div>
-
-            <div className={cx('feature-item')}>
-              <div className={cx('feature-icon')}>📊</div>
-              <h3>Báo cáo thống kê</h3>
-              <p>Tạo báo cáo và thống kê chi tiết về hoạt động</p>
-            </div>
-
-            <div className={cx('feature-item')}>
-              <div className={cx('feature-icon')}>👥</div>
-              <h3>Quản lý người dùng</h3>
-              <p>Phân quyền và quản lý tài khoản cán bộ</p>
-            </div>
-
-            <div className={cx('feature-item')}>
-              <div className={cx('feature-icon')}>🔄</div>
-              <h3>Sao lưu dữ liệu</h3>
-              <p>Tự động sao lưu và bảo vệ dữ liệu hệ thống</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer Info */}
-      <div className={cx('info-section')}>
-        <div className={cx('container')}>
-          <div className={cx('info-content')}>
-            <div className={cx('contact-info')}>
-              <h3>📞 THÔNG TIN LIÊN HỆ</h3>
-              <p>Phòng Tham mưu</p>
-              <p>Email: pv01@dala.bca</p>
-              <p>Hotline: 1900-xxxx</p>
-            </div>
-            
-            <div className={cx('version-info')}>
-              <h3>🔧 THÔNG TIN HỆ THỐNG</h3>
-              <p>Phiên bản: {config.app.version}</p>
-              <p>Cập nhật: {new Date().getFullYear()}</p>
-              <p>Đội ngũ phát triển: Đội CNTT</p>
-            </div>
-          </div>
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className={cx('submit-btn', { loading: isLoading })}
+            >
+              {isLoading ? (
+                <>
+                  <span className={cx('spinner')}></span>
+                  Đang đăng nhập...
+                </>
+              ) : (
+                <span className={cx('login')}>
+                  <i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng nhập
+                  </span>
+              )}
+            </button>
+          </form>
         </div>
       </div>
     </div>

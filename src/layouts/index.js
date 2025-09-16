@@ -2,6 +2,7 @@
 export { default } from './DefaultLayout.js';
 export { default as DefaultLayout } from './DefaultLayout.js';
 
-// Future layouts can be added here:
-// export { default as AdminLayout } from './AdminLayout.jsx';
-// export { default as AuthLayout } from './AuthLayout.jsx';
+// components/index.js - Export all components
+export { default as NavBar } from './NavBar';
+export { default as Header } from './Header';
+export { default as Footer } from './Footer';

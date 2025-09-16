@@ -13,7 +13,7 @@ import Login from '../pages/Auth/Login.js';
 import Register from '../pages/Auth/Register.js';
 
 // Posts management (private - cần admin access)
-import PostsPage from '../pages/Posts/PostsPage.js';
+import Posts from '../pages/Posts/Posts.js';
 import PostsCreate from '../pages/Posts/PostsCreate.js';
 import PostsEdit from '../pages/Posts/PostsEdit.js';
 import PostsView from '../pages/Posts/PostsView.js';
@@ -28,19 +28,22 @@ import Profile from '../pages/Private/Profile.js';
 // Public routes - không cần đăng nhập
 const publicRoutes = [
   { path: config.routes.home, component: Home },
-  { path: config.routes.blogs, component: Blogs },
-  { path: config.routes.contact, component: Contact },
-  { path: config.routes.about, component: About },
+  
+  
   { path: config.routes.login, component: Login },
-  { path: config.routes.register, component: Register },
+  
 ];
 
 // Private routes - cần đăng nhập
 const privateRoutes = [
   { path: config.routes.dashboard, component: Dashboard },
+  { path: config.routes.blogs, component: Blogs },
+  { path: config.routes.contact, component: Contact },
+  { path: config.routes.about, component: About },
+  { path: config.routes.register, component: Register },
   
   // Posts management (chỉ admin)
-  { path: config.routes.posts, component: PostsPage },
+  { path: config.routes.posts, component: Posts },
   { path: config.routes.postsCreate, component: PostsCreate },
   { path: config.routes.postsEdit, component: PostsEdit },
   { path: config.routes.postsView, component: PostsView },
