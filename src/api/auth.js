@@ -1,13 +1,13 @@
-// api/auth.js - Authentication Functions
+// api/auth.js - Updated for https://data.o.io/
 import directusClient from './directus.js';
 import config from '../config/index.js';
 
 class AuthService {
   async login(email, password) {
     try {
-      console.log('Attempting login...');
+      console.log('Attempting login to:', config.directus.apiUrl);
 
-      // Sử dụng apiUrl từ config (có CORS proxy trong dev)
+      // Sử dụng endpoint auth/login của Directus
       const loginUrl = `${config.directus.apiUrl}/admin/login`;
       
       const response = await fetch(loginUrl, {
@@ -69,7 +69,7 @@ class AuthService {
   async logout() {
     try {
       if (directusClient.isAuthenticated()) {
-        const logoutUrl = `${config.directus.apiUrl}/auth/logout`;
+        const logoutUrl = `${config.directus.apiUrl}/admin/logout`;
         await fetch(logoutUrl, {
           method: 'POST',
           headers: {
@@ -101,7 +101,7 @@ class AuthService {
 
   async getCurrentUser() {
     try {
-      const userUrl = `${config.directus.apiUrl}/users/me`;
+      const userUrl = `${config.directus.apiUrl}/admin/me`;
       const response = await fetch(userUrl, {
         headers: {
           'Authorization': `Bearer ${directusClient.getToken()}`
@@ -134,7 +134,10 @@ class AuthService {
 
   async refreshToken() {
     try {
-      const refreshUrl = `${config.directus.apiUrl}/auth/refresh`;
+      const baseUrl = process.env.NODE_ENV === 'production' 
+        ? config.directus.apiUrl 
+        : '';
+      const refreshUrl = `${baseUrl}/admin/refresh`;
       const response = await fetch(refreshUrl, {
         method: 'POST',
         headers: {

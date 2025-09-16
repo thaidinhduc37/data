@@ -1,7 +1,5 @@
-// hooks/useAuth.js - Authentication hook
+// hooks/useAuth.js - Based on Directus Guest Authoring approach
 import { useState, useEffect, useCallback } from 'react';
-import api from '../api/index.js';
-import config from '../config/index.js';
 
 export const useAuth = () => {
   const [user, setUser] = useState(null);
@@ -9,42 +7,163 @@ export const useAuth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Check if user is already logged in on mount (only check existing session)
-  useEffect(() => {
-    const checkExistingSession = async () => {
-      if (api.auth.isLoggedIn()) {
+  // Directus configuration (use relative paths for proxy)
+  const LOGIN_EMAIL = 'admin@o.io';
+  const LOGIN_PASSWORD = '12345';
+
+  // Create Directus client
+  const createDirectusAuth = () => {
+    return {
+      async login(email, password) {
         try {
-          const result = await api.auth.getCurrentUser();
-          if (result.success) {
-            setUser(result.data);
-            setIsLoggedIn(true);
+          const response = await fetch('/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email,
+              password,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Authentication failed: ${response.statusText}`);
           }
+
+          const data = await response.json();
+          if (!data.data?.access_token) {
+            throw new Error('No access token received');
+          }
+          return data;
         } catch (err) {
-          console.log('No existing session found');
+          throw err;
         }
-      }
+      },
+
+      async logout() {
+        const token = localStorage.getItem('directus_access_token');
+        if (token) {
+          try {
+            await fetch('/auth/logout', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            });
+          } catch (err) {
+            console.warn('Logout request failed:', err);
+          }
+        }
+        localStorage.removeItem('directus_access_token');
+        localStorage.removeItem('directus_refresh_token');
+      },
+
+      async refresh() {
+        const refreshToken = localStorage.getItem('directus_refresh_token');
+        if (!refreshToken) {
+          throw new Error('No refresh token available');
+        }
+
+        const response = await fetch('/auth/refresh', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            refresh_token: refreshToken,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Token refresh failed');
+        }
+
+        const data = await response.json();
+        if (!data.data?.access_token) {
+          throw new Error('No new access token received');
+        }
+        return data;
+      },
+
+      async me() {
+        const token = localStorage.getItem('directus_access_token');
+        if (!token) {
+          throw new Error('No access token available');
+        }
+
+        const response = await fetch('/users/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch user data');
+        }
+
+        return response.json();
+      },
     };
-    
-    checkExistingSession();
+  };
+
+  const auth = createDirectusAuth();
+
+  // Check existing session
+  const checkExistingSession = useCallback(async () => {
+    const token = localStorage.getItem('directus_access_token');
+    if (!token) return false;
+
+    try {
+      const userData = await auth.me();
+      setUser(userData.data);
+      setIsLoggedIn(true);
+      return true;
+    } catch (err) {
+      console.log('Existing session invalid, attempting refresh...');
+      try {
+        const refreshData = await auth.refresh();
+        localStorage.setItem('directus_access_token', refreshData.data.access_token);
+        if (refreshData.data.refresh_token) {
+          localStorage.setItem('directus_refresh_token', refreshData.data.refresh_token);
+        }
+        const userData = await auth.me();
+        setUser(userData.data);
+        setIsLoggedIn(true);
+        return true;
+      } catch (refreshErr) {
+        console.log('Token refresh failed:', refreshErr);
+        localStorage.removeItem('directus_access_token');
+        localStorage.removeItem('directus_refresh_token');
+        return false;
+      }
+    }
   }, []);
 
   // Login function
-  const login = useCallback(async (email, password) => {
+  const login = useCallback(async (email = LOGIN_EMAIL, password = LOGIN_PASSWORD) => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const result = await api.auth.login(email, password);
-      
-      if (result.success) {
-        setUser(result.data.user);
-        setIsLoggedIn(true);
-        return { success: true };
-      } else {
-        setError(result.error.message);
-        return { success: false, error: result.error.message };
+      console.log('Attempting login with Directus API...');
+      const response = await auth.login(email, password);
+
+      localStorage.setItem('directus_access_token', response.data.access_token);
+      if (response.data.refresh_token) {
+        localStorage.setItem('directus_refresh_token', response.data.refresh_token);
       }
+
+      const userData = await auth.me();
+      setUser(userData.data);
+      setIsLoggedIn(true);
+
+      console.log('Login successful');
+      return { success: true, data: response.data, user: userData.data };
     } catch (err) {
+      console.error('Login error:', err);
       const errorMessage = err.message || 'Đăng nhập thất bại';
       setError(errorMessage);
       return { success: false, error: errorMessage };
@@ -57,14 +176,13 @@ export const useAuth = () => {
   const logout = useCallback(async () => {
     try {
       setIsLoading(true);
-      await api.auth.logout();
-      
+      await auth.logout();
       setUser(null);
       setIsLoggedIn(false);
       setError(null);
-      
       return { success: true };
     } catch (err) {
+      console.error('Logout error:', err);
       setError(err.message);
       return { success: false, error: err.message };
     } finally {
@@ -72,142 +190,32 @@ export const useAuth = () => {
     }
   }, []);
 
-  // Refresh user info
-  const refreshUser = useCallback(async () => {
-    try {
-      if (!api.auth.isLoggedIn()) {
-        return { success: false, error: 'Not logged in' };
+  // Auto-login for development
+  const autoLogin = useCallback(async () => {
+    if (isLoggedIn) return;
+
+    console.log('Attempting auto-login...');
+    await login();
+  }, [isLoggedIn, login]);
+
+  // Initialize
+  useEffect(() => {
+    const initAuth = async () => {
+      const hasExistingSession = await checkExistingSession();
+      if (!hasExistingSession) {
+        await autoLogin();
       }
-
-      const result = await api.auth.getCurrentUser();
-      
-      if (result.success) {
-        setUser(result.data);
-        return { success: true, data: result.data };
-      } else {
-        setError(result.error.message);
-        return result;
-      }
-    } catch (err) {
-      setError(err.message);
-      return { success: false, error: err.message };
-    }
-  }, []);
-
-  // Check permissions for collection
-  const hasPermission = useCallback((collection, action = 'read') => {
-    if (!user || !user.role) return false;
-    
-    // Admin users have all permissions
-    if (user.role.admin_access) return true;
-    
-    // Check specific permissions
-    const permissions = user.role.permissions || [];
-    return permissions.some(p => 
-      p.collection === collection && 
-      (p.action === action || p.action === '*')
-    );
-  }, [user]);
-
-  // Get user role info
-  const getUserRole = useCallback(() => {
-    if (!user) return null;
-    
-    // Check if user has admin role in Directus
-    if (user.role?.admin_access) {
-      return {
-        type: 'admin',
-        name: 'Administrator',
-        description: 'Full administrative access',
-        level: 90,
-        permissions: user.role.permissions || ['*']
-      };
-    }
-    
-    // Determine role based on permissions
-    const permissions = user.role?.permissions || [];
-    const hasWriteAccess = permissions.some(p => 
-      ['create', 'update', 'delete', '*'].includes(p.action)
-    );
-    
-    if (hasWriteAccess) {
-      return {
-        type: 'editor',
-        name: 'Editor',
-        description: 'Can create and edit content',
-        level: 50,
-        permissions: permissions
-      };
-    }
-    
-    return {
-      type: 'user',
-      name: 'User',
-      description: 'Read-only access',
-      level: 10,
-      permissions: permissions
     };
-  }, [user]);
-
-  // Check if user can access admin features
-  const canAccessAdmin = useCallback(() => {
-    const role = getUserRole();
-    return role && role.level >= 50;
-  }, [getUserRole]);
-
-  // Check if user can manage specific collections
-  const canManageCollection = useCallback((collection) => {
-    if (!user) return false;
-    
-    const role = getUserRole();
-    if (role && role.level >= 90) return true;
-    
-    return hasPermission(collection, 'create') || 
-           hasPermission(collection, 'update') || 
-           hasPermission(collection, 'delete');
-  }, [user, getUserRole, hasPermission]);
-
-  // Get accessible collections for current user
-  const getAccessibleCollections = useCallback(() => {
-    if (!user) return [];
-    
-    const role = getUserRole();
-    if (role && role.level >= 90) {
-      return ['posts', 'pages', 'forms', 'form_submissions', 'navigation', 'globals'];
-    }
-    
-    const permissions = user.role?.permissions || [];
-    const accessibleCollections = new Set();
-    
-    permissions.forEach(permission => {
-      if (permission.collection && permission.action !== 'none') {
-        accessibleCollections.add(permission.collection);
-      }
-    });
-    
-    return Array.from(accessibleCollections);
-  }, [user, getUserRole]);
+    initAuth();
+  }, [checkExistingSession, autoLogin]);
 
   return {
-    // State
     user,
     isLoggedIn,
     isLoading,
     error,
-    
-    // Actions
     login,
     logout,
-    refreshUser,
-    
-    // Permission utilities
-    hasPermission,
-    getUserRole,
-    canAccessAdmin,
-    canManageCollection,
-    getAccessibleCollections,
-    
-    // Utilities
-    clearError: () => setError(null)
+    clearError: () => setError(null),
   };
 };

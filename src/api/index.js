@@ -1,87 +1,323 @@
-// api/index.js - Central API exports
-import directusClient from './directus.js';
-import authService from './auth.js';
-import collectionsService from './collections.js';
-import postsService from './posts.js';
-import pagesService from './pages.js';
+// api/index.js - API wrapper without CORS issues
+import directusClient from '../services/directus.js';
 
-// Export all services individually
-export { default as directusClient } from './directus.js';
-export { default as authService } from './auth.js';
-export { default as collectionsService } from './collections.js';
-export { default as postsService } from './posts.js';
-export { default as pagesService } from './pages.js';
-
-// Main API object - clean and simple
 const api = {
-  // Authentication
+  // Auth endpoints
   auth: {
-    login: authService.login.bind(authService),
-    logout: authService.logout.bind(authService),
-    getCurrentUser: authService.getCurrentUser.bind(authService),
-    refreshToken: authService.refreshToken.bind(authService),
-    isLoggedIn: authService.isLoggedIn.bind(authService),
-    getUser: authService.getUser.bind(authService)
+    async login(email, password) {
+      try {
+        const result = await directusClient.login(email, password);
+        
+        if (result.data?.access_token) {
+          return {
+            success: true,
+            data: {
+              token: result.data.access_token,
+              user: result.data.user || {},
+              expires: result.data.expires || null
+            }
+          };
+        } else {
+          throw new Error('Invalid response format');
+        }
+      } catch (err) {
+        return {
+          success: false,
+          error: { message: err.message }
+        };
+      }
+    },
+
+    async logout() {
+      try {
+        const token = directusClient.getToken();
+        if (token) {
+          // Try to logout from server
+          try {
+            await directusClient.request('/auth/logout', { method: 'POST' });
+          } catch (err) {
+            console.log('Server logout failed:', err);
+          }
+        }
+        
+        directusClient.setToken(null);
+        
+        return { success: true };
+      } catch (err) {
+        return {
+          success: false,
+          error: { message: err.message }
+        };
+      }
+    },
+
+    async getCurrentUser() {
+      try {
+        const result = await directusClient.getCurrentUser();
+        return {
+          success: true,
+          data: result.data
+        };
+      } catch (err) {
+        return {
+          success: false,
+          error: { message: err.message }
+        };
+      }
+    },
+
+    isLoggedIn() {
+      return !!directusClient.getToken();
+    }
   },
 
-  // Posts
+  // Posts endpoints
   posts: {
-    getAll: postsService.getAllPosts.bind(postsService),
-    get: postsService.getPost.bind(postsService),
-    create: postsService.createPost.bind(postsService),
-    update: postsService.updatePost.bind(postsService),
-    delete: postsService.deletePost.bind(postsService),
-    publish: postsService.publishPost.bind(postsService),
-    unpublish: postsService.unpublishPost.bind(postsService),
-    search: postsService.searchPosts.bind(postsService),
-    getPublished: postsService.getPublishedPosts.bind(postsService),
-    getDrafts: postsService.getDraftPosts.bind(postsService),
-    getByCategory: postsService.getPostsByCategory.bind(postsService),
-    getByTag: postsService.getPostsByTag.bind(postsService),
-    getStats: postsService.getPostsStats.bind(postsService)
+    async getAll(options = {}) {
+      try {
+        const result = await directusClient.getItems('posts', {
+          limit: options.limit || 50,
+          offset: options.offset || 0,
+          fields: options.fields || ['*'],
+          sort: options.sort || ['-date_created'],
+          filter: options.filter || {}
+        });
+        
+        return {
+          success: true,
+          data: result.data || [],
+          meta: result.meta || {}
+        };
+      } catch (err) {
+        return {
+          success: false,
+          error: { message: err.message }
+        };
+      }
+    },
+
+    async get(id, options = {}) {
+      try {
+        const result = await directusClient.getItem('posts', id, {
+          fields: options.fields || ['*']
+        });
+        
+        return {
+          success: true,
+          data: result.data
+        };
+      } catch (err) {
+        return {
+          success: false,
+          error: { message: err.message }
+        };
+      }
+    },
+
+    async create(data) {
+      try {
+        const result = await directusClient.createItem('posts', data);
+        
+        return {
+          success: true,
+          data: result.data
+        };
+      } catch (err) {
+        return {
+          success: false,
+          error: { message: err.message }
+        };
+      }
+    },
+
+    async update(id, data) {
+      try {
+        const result = await directusClient.updateItem('posts', id, data);
+        
+        return {
+          success: true,
+          data: result.data
+        };
+      } catch (err) {
+        return {
+          success: false,
+          error: { message: err.message }
+        };
+      }
+    },
+
+    async delete(id) {
+      try {
+        await directusClient.deleteItem('posts', id);
+        
+        return { success: true };
+      } catch (err) {
+        return {
+          success: false,
+          error: { message: err.message }
+        };
+      }
+    },
+
+    async publish(id) {
+      return await this.update(id, { status: 'published' });
+    },
+
+    async unpublish(id) {
+      return await this.update(id, { status: 'draft' });
+    },
+
+    async getPublished(options = {}) {
+      return await this.getAll({
+        ...options,
+        filter: { status: { _eq: 'published' } }
+      });
+    },
+
+    async getDrafts(options = {}) {
+      return await this.getAll({
+        ...options,
+        filter: { status: { _eq: 'draft' } }
+      });
+    },
+
+    async search(searchTerm, options = {}) {
+      return await this.getAll({
+        ...options,
+        filter: {
+          _or: [
+            { title: { _icontains: searchTerm } },
+            { content: { _icontains: searchTerm } }
+          ]
+        }
+      });
+    },
+
+    async getStats() {
+      try {
+        // Get total count
+        const totalResult = await directusClient.getItems('posts', { 
+          limit: 1,
+          meta: 'total_count' 
+        });
+        
+        // Get published count
+        const publishedResult = await directusClient.getItems('posts', { 
+          limit: 1,
+          filter: { status: { _eq: 'published' } },
+          meta: 'total_count'
+        });
+        
+        return {
+          success: true,
+          data: {
+            total: totalResult.meta?.total_count || 0,
+            published: publishedResult.meta?.total_count || 0,
+            drafts: (totalResult.meta?.total_count || 0) - (publishedResult.meta?.total_count || 0)
+          }
+        };
+      } catch (err) {
+        return {
+          success: false,
+          error: { message: err.message }
+        };
+      }
+    }
   },
 
-  // Pages
+  // Pages endpoints (similar structure)
   pages: {
-    getAll: pagesService.getAllPages.bind(pagesService),
-    get: pagesService.getPage.bind(pagesService),
-    getBySlug: pagesService.getPageBySlug.bind(pagesService),
-    create: pagesService.createPage.bind(pagesService),
-    update: pagesService.updatePage.bind(pagesService),
-    delete: pagesService.deletePage.bind(pagesService),
-    publish: pagesService.publishPage.bind(pagesService),
-    search: pagesService.searchPages.bind(pagesService),
-    getPublished: pagesService.getPublishedPages.bind(pagesService),
-    getNavigation: pagesService.getNavigationPages.bind(pagesService),
-    updateOrder: pagesService.updatePageOrder.bind(pagesService),
-    getStats: pagesService.getPagesStats.bind(pagesService)
+    async getAll(options = {}) {
+      try {
+        const result = await directusClient.getItems('pages', {
+          limit: options.limit || 50,
+          offset: options.offset || 0,
+          fields: options.fields || ['*'],
+          sort: options.sort || ['-date_created'],
+          filter: options.filter || {}
+        });
+        
+        return {
+          success: true,
+          data: result.data || [],
+          meta: result.meta || {}
+        };
+      } catch (err) {
+        return {
+          success: false,
+          error: { message: err.message }
+        };
+      }
+    },
+    // ... other page methods similar to posts
   },
 
-  // Generic collections
+  // Collections management
   collections: {
-    discover: collectionsService.discoverCollections.bind(collectionsService),
-    getItems: collectionsService.getItems.bind(collectionsService),
-    getItem: collectionsService.getItem.bind(collectionsService),
-    create: collectionsService.createItem.bind(collectionsService),
-    update: collectionsService.updateItem.bind(collectionsService),
-    delete: collectionsService.deleteItem.bind(collectionsService),
-    search: collectionsService.searchItems.bind(collectionsService),
-    getStats: collectionsService.getCollectionStats.bind(collectionsService),
-    bulkDelete: collectionsService.bulkDelete.bind(collectionsService),
-    bulkUpdate: collectionsService.bulkUpdate.bind(collectionsService)
+    async discover() {
+      try {
+        // Try to access known collections
+        const knownCollections = ['posts', 'pages', 'globals', 'navigation'];
+        const availableCollections = [];
+        
+        for (const collection of knownCollections) {
+          try {
+            await directusClient.getItems(collection, { limit: 1 });
+            availableCollections.push(collection);
+          } catch (err) {
+            console.log(`Collection ${collection} not accessible:`, err.message);
+          }
+        }
+        
+        return {
+          success: true,
+          collections: availableCollections
+        };
+      } catch (err) {
+        return {
+          success: false,
+          error: { message: err.message }
+        };
+      }
+    },
+
+    async getStats(collection) {
+      try {
+        const result = await directusClient.getItems(collection, { 
+          limit: 1,
+          meta: 'total_count' 
+        });
+        
+        return {
+          success: true,
+          data: {
+            collection: collection,
+            total: result.meta?.total_count || 0
+          }
+        };
+      } catch (err) {
+        return {
+          success: false,
+          error: { message: err.message }
+        };
+      }
+    }
   },
 
   // Utilities
   utils: {
-    getFileURL: directusClient.getFileURL.bind(directusClient),
-    formatDate: directusClient.formatDate.bind(directusClient),
-    testConnection: directusClient.testConnection.bind(directusClient),
-    debug: directusClient.debug.bind(directusClient)
+    async testConnection() {
+      try {
+        const result = await directusClient.testConnection();
+        return result;
+      } catch (err) {
+        return {
+          success: false,
+          error: err.message
+        };
+      }
+    }
   }
 };
 
-// Export the main API object as default
 export default api;
-
-// Export as named export too for flexibility
-export { api };

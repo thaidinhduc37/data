@@ -13,9 +13,7 @@ const directus = createDirectus(DIRECTUS_URL)
 let currentUser = null;
 let authToken = null;
 
-/**
- * Directus Client với các methods helper
- */
+
 class DirectusClient {
   constructor() {
     this.client = directus;
@@ -23,9 +21,7 @@ class DirectusClient {
     this.baseURL = DIRECTUS_URL;
   }
 
-  /**
-   * Lấy Directus client instance
-   */
+
   getClient() {
     return this.client;
   }
@@ -140,8 +136,8 @@ class DirectusClient {
     try {
       console.log('🔍 Testing connection to Directus...');
       
-      // Thử gọi API server info (public endpoint)
-      const response = await fetch(`${this.baseURL}/server/info`);
+    
+      const response = await fetch(`${this.baseURL}/admin`);
       
       if (response.ok) {
         const serverInfo = await response.json();
@@ -167,7 +163,7 @@ class DirectusClient {
    */
   async getAvailableCollections() {
     try {
-      const response = await fetch(`${this.baseURL}/collections`, {
+      const response = await fetch(`${this.baseURL}/admin/collections`, {
         headers: this.getToken() ? {
           'Authorization': `Bearer ${this.getToken()}`
         } : {}

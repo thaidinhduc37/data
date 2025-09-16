@@ -12,7 +12,6 @@ function App() {
     const availableRoutes = isLoggedIn 
         ? [...publicRoutes, ...privateRoutes] 
         : publicRoutes;
-    console.log(publicRoutes)
     return (
         <Router>
             <div className="App">

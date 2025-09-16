@@ -18,6 +18,7 @@ function DefaultLayout({ children }) {
         { path: config.routes.blogs, icon: '📝', label: 'Blog', public: true },
         { path: config.routes.contact, icon: '📞', label: 'Liên hệ', public: true },
         { path: config.routes.about, icon: 'ℹ️', label: 'Giới thiệu', public: true },
+        
     ];
 
     // Top Header component
@@ -89,7 +90,8 @@ function DefaultLayout({ children }) {
                         }}>
                             <span style={{ fontSize: '16px' }}>👤</span>
                             <span style={{ fontSize: '14px', color: '#374151' }}>
-                                {user?.first_name || user?.email}
+                                <a href={config.routes.profile} style={{ textDecoration: 'none', color: '#374151' }}> {user?.first_name || user?.email}</a>
+                               
                             </span>
                         </div>
                         <button

@@ -19,7 +19,7 @@ import PostsEdit from '../pages/Posts/PostsEdit.js';
 import PostsView from '../pages/Posts/PostsView.js';
 
 // Admin/Management
-import Dashboard from '../pages/Private/Dashboard.js';
+import Dashboard from '../pages/Home/Dashboard.js';
 import Collections from '../pages/Private/Collections.js';
 import CollectionsView from '../pages/Private/CollectionsView.js';
 import Settings from '../pages/Private/Settings.js';

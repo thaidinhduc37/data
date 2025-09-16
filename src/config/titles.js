@@ -4,7 +4,7 @@ const titles = {
   home: 'Trang chủ',
   blogs: 'Blogs',
   contact: 'Liên hệ',
-  aboutUs: 'Giới thiệu',
+  about: 'Giới thiệu',
   privacyPolicy: 'Chính sách bảo mật',
   
   // Posts management
