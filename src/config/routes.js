@@ -5,7 +5,7 @@ const routes = {
   dashboard: '/trang-chu',
   blogs: '/blogs',
   contact: '/contact',
-  about: '/about',
+  address: '/address',
   posts: '/posts',
   
   // Posts management (có sub-routes)
@@ -13,6 +13,13 @@ const routes = {
   postsCreate: '/posts/create',
   postsEdit: '/posts/:id/edit',
   postsView: '/posts/:id',
+
+  // Posts management (có sub-routes)
+  schedule: '/schedule',
+  timeoff: '/schedule/timeoff',
+  plan: '/schedule/plan',
+  guard: '/schedule/guard',
+ 
   
   // Authentication
   login: '/login',

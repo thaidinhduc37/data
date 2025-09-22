@@ -6,7 +6,7 @@ import config from '../config';
 import Home from '../pages/Home/Home.js';
 import Blogs from '../pages/Blogs/Blogs.js';
 import Contact from '../pages/Contact/Contact.js';
-import About from '../pages/About/About.js';
+import Address from '../pages/Address/Address.js';
 
 // Authentication
 import Login from '../pages/Auth/Login.js';
@@ -17,6 +17,12 @@ import Posts from '../pages/Posts/Posts.js';
 import PostsCreate from '../pages/Posts/PostsCreate.js';
 import PostsEdit from '../pages/Posts/PostsEdit.js';
 import PostsView from '../pages/Posts/PostsView.js';
+
+
+import Schedule from '../pages/Schedule/Schedule.js';
+import TimeOff from '../pages/Schedule/TimeOff.js';
+import Plans from '../pages/Schedule/Plans.js';
+import Guard from '../pages/Schedule/Guard.js';
 
 // Admin/Management
 import Dashboard from '../pages/Home/Dashboard.js';
@@ -39,7 +45,7 @@ const privateRoutes = [
   { path: config.routes.dashboard, component: Dashboard },
   { path: config.routes.blogs, component: Blogs },
   { path: config.routes.contact, component: Contact },
-  { path: config.routes.about, component: About },
+  { path: config.routes.address, component: Address },
   { path: config.routes.register, component: Register },
   
   // Posts management (chỉ admin)
@@ -47,6 +53,12 @@ const privateRoutes = [
   { path: config.routes.postsCreate, component: PostsCreate },
   { path: config.routes.postsEdit, component: PostsEdit },
   { path: config.routes.postsView, component: PostsView },
+
+ // Schedule management
+  { path: config.routes.schedule, component: Schedule },
+  { path: config.routes.timeoff, component: TimeOff },
+  { path: config.routes.plans, component: Plans },
+  {path: config.routes.guard, component: Guard },
   
   // Collections management
   { path: config.routes.collections, component: Collections },

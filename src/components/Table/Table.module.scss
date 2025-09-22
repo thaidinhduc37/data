@@ -1,0 +1,412 @@
+// Table.module.scss
+
+.tableContainer {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 8rem;
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid #e5e7eb;
+  border-bottom-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Search container
+.searchContainer {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.searchWrapper {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  font-size: 1rem;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+}
+
+// Table styles
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableHead {
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tableHeader {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  
+  &.sortable {
+    cursor: pointer;
+    
+    &:hover {
+      background-color: #f3f4f6;
+    }
+  }
+}
+
+.selectColumn {
+  @extend .tableHeader;
+  width: 3rem;
+}
+
+.actionsHeader {
+  @extend .tableHeader;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.sortIcon {
+  display: flex;
+  align-items: center;
+}
+
+.tableBody {
+  background: white;
+  
+  tr {
+    border-bottom: 1px solid #e5e7eb;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.tableRow {
+  transition: background-color 0.15s ease;
+  
+  &:hover {
+    background-color: #f9fafb;
+  }
+  
+  &.clickable {
+    cursor: pointer;
+  }
+  
+  &.selected {
+    background-color: #eff6ff;
+    
+    &:hover {
+      background-color: #dbeafe;
+    }
+  }
+}
+
+.tableCell {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #111827;
+  vertical-align: middle;
+}
+
+.emptyCell {
+  @extend .tableCell;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+// Form controls
+.input, .select {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  color: #2563eb;
+  border: 1px solid #d1d5db;
+  border-radius: 0.25rem;
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  }
+}
+
+// Buttons
+.btn {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  
+  &.btnPrimary {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+    
+    &:hover {
+      background-color: #bfdbfe;
+    }
+  }
+  
+  &.btnDanger {
+    background-color: #fecaca;
+    color: #dc2626;
+    
+    &:hover {
+      background-color: #fca5a5;
+    }
+  }
+}
+
+.actionBtn {
+  padding: 0.25rem;
+  border: none;
+  background: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  color: #6b7280;
+  
+  &:hover {
+    background-color: #f3f4f6;
+    color: #374151;
+  }
+}
+
+// Special cell types
+.link {
+  color: #2563eb;
+  text-decoration: none;
+  
+  &:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+  }
+}
+
+.badge {
+  display: inline-flex;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  
+  &.badgeGreen {
+    background-color: #dcfce7;
+    color: #166534;
+  }
+  
+  &.badgeRed {
+    background-color: #fecaca;
+    color: #dc2626;
+  }
+  
+  &.badgeBlue {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+  }
+  
+  &.badgeYellow {
+    background-color: #fef3c7;
+    color: #d97706;
+  }
+  
+  &.badgeGray {
+    background-color: #f3f4f6;
+    color: #374151;
+  }
+}
+
+.actionsCell {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.editableCell {
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  transition: background-color 0.15s ease;
+  
+  &:hover {
+    background-color: #f9fafb;
+  }
+}
+
+.editCell {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.editInput {
+  @extend .input;
+  min-width: 100px;
+}
+
+.editBtn {
+  padding: 0.25rem;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  
+  &.saveBtn {
+    color: #059669;
+    
+    &:hover {
+      background-color: #d1fae5;
+    }
+  }
+  
+  &.cancelBtn {
+    color: #dc2626;
+    
+    &:hover {
+      background-color: #fecaca;
+    }
+  }
+}
+
+// Pagination
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: between;
+  padding: 1rem;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+.paginationInfo {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.paginationBtn {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  
+  &:hover:not(.disabled) {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+  }
+  
+  &.active {
+    background-color: #2563eb;
+    color: white;
+    border-color: #2563eb;
+  }
+  
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.paginationDots {
+  padding: 0.5rem 0.25rem;
+  color: #6b7280;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .tableContainer {
+    border-radius: 0;
+    box-shadow: none;
+  }
+  
+  .searchContainer {
+    padding: 0.75rem;
+  }
+  
+  .tableCell, .tableHeader {
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .pagination {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .paginationControls {
+    margin-left: 0;
+  }
+  
+  .paginationBtn {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}

@@ -4,8 +4,13 @@ const titles = {
   dashboard: 'Trang chủ',
   blogs: 'Blogs',
   contact: 'Liên hệ',
-  about: 'Giới thiệu',
+  address: 'Địa chỉ hành chính',
   posts: 'Bài viết',
+
+  schedule: 'Công tác & Kế hoạch',
+  timeoff: 'Đăng ký nghỉ phép',
+  plan: 'Kế hoạch công tác',
+  guard: 'Lịch trực',
   
   // Posts management
   posts: 'Quản lý Posts',

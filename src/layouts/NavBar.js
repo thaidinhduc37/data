@@ -48,6 +48,17 @@ function NavBar({ isCollapsed, onToggle }) {
                 { path: '/news/internal', label: 'Thông báo nội bộ' },
                 { path: '/news/public', label: 'Thông tin công khai' }
             ]
+        },{ 
+            key: 'schedule',
+            icon: 'fa-regular fa-calendar-days', 
+            label: 'Kế hoạch & Công việc', 
+            protected: true,
+            submenu: [
+                { path: '/schedule/guard', label: 'Phân công lịch trực' },
+                { path: '/schedule/timeoff', label: 'Đăng ký nghỉ phép' },
+                { path: '/schedule/plans', label: 'Kế hoạch công tác' },
+    
+            ]
         },
         { 
             key: 'management',
@@ -55,10 +66,10 @@ function NavBar({ isCollapsed, onToggle }) {
             label: 'Quản trị hệ thống', 
             protected: true,
             submenu: [
-                { path: '/users', label: 'Quản lý người dùng' },
-                { path: '/roles', label: 'Phân quyền' },
-                { path: '/settings', label: 'Cài đặt hệ thống' },
-                { path: '/logs', label: 'Nhật ký hoạt động' }
+                { path: '', label: 'Quản lý người dùng' },
+                { path: '', label: 'Phân quyền' },
+                { path: '', label: 'Cài đặt hệ thống' },
+                { path: '', label: 'Nhật ký hoạt động' }
             ]
         },
         { 
@@ -68,9 +79,9 @@ function NavBar({ isCollapsed, onToggle }) {
             public: true 
         },
         { 
-            path: config.routes.about, 
-            icon: 'fas fa-info-circle', 
-            label: 'Giới thiệu', 
+            path: config.routes.address, 
+            icon: 'fa-solid fa-map', 
+            label: 'Địa giới hành chính mới', 
             public: true 
         },
     ];
