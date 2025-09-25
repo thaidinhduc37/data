@@ -18,6 +18,12 @@ import PostsCreate from '../pages/Posts/PostsCreate.js';
 import PostsEdit from '../pages/Posts/PostsEdit.js';
 import PostsView from '../pages/Posts/PostsView.js';
 
+import DashboardDenounce from '../pages/Denounce/DashboardDenounce.js';
+import ProcessingDenounce from '../pages/Denounce/ProcessingDenounce.js';
+import ReceptionDenounce from '../pages/Denounce/ReceptionDenounce.js';
+import ReportsDenounce from '../pages/Denounce/ReportsDenounce.js';
+import TrackingDenounce from '../pages/Denounce/TrackingDenounce.js';
+
 
 import Schedule from '../pages/Schedule/Schedule.js';
 import TimeOff from '../pages/Schedule/TimeOff.js';
@@ -53,6 +59,15 @@ const privateRoutes = [
   { path: config.routes.postsCreate, component: PostsCreate },
   { path: config.routes.postsEdit, component: PostsEdit },
   { path: config.routes.postsView, component: PostsView },
+
+  // Schedule denounce
+  { path: config.routes.dashboarddenounce, component: DashboardDenounce },
+  { path: config.routes.processingdenounce, component: ProcessingDenounce },
+  { path: config.routes.receptiondenounce, component: ReceptionDenounce },
+  { path: config.routes.reportsdenounce, component: ReportsDenounce },
+  { path: config.routes.trackingdenounce, component: TrackingDenounce },
+
+
 
  // Schedule management
   { path: config.routes.schedule, component: Schedule },

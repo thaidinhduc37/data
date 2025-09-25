@@ -190,7 +190,7 @@ const Address = () => {
         switch (value?.toLowerCase()) {
           case 'xã': return 'green';
           case 'phường': return 'blue';
-          case 'thị trấn': return 'yellow';
+          case 'đặc khu': return 'yellow';
           default: return 'gray';
         }
       },
@@ -230,7 +230,7 @@ const Address = () => {
         switch (value?.toLowerCase()) {
           case 'xã': return 'green';
           case 'phường': return 'blue';
-          case 'thị trấn': return 'yellow';
+          case 'đặc khu': return 'yellow';
           default: return 'gray';
         }
       },
@@ -294,7 +294,7 @@ const Address = () => {
       total: data.length,
       xa: data.filter(d => d.cap_hanh_chinh?.toLowerCase() === 'xã').length,
       phuong: data.filter(d => d.cap_hanh_chinh?.toLowerCase() === 'phường').length,
-      thiTran: data.filter(d => d.cap_hanh_chinh?.toLowerCase() === 'thị trấn').length
+      dackhu: data.filter(d => d.cap_hanh_chinh?.toLowerCase() === 'đặc khu').length
     };
   };
 
@@ -311,7 +311,7 @@ const Address = () => {
             Hệ Thống Quản Lý Địa Giới Hành Chính
           </h1>
           <p className={cx('pageSubtitle')}>
-            Tra cứu và quản lý thông tin địa giới hành chính cấp xã, phường, thị trấn toàn quốc
+            Tra cứu và quản lý thông tin địa giới hành chính cấp xã, phường, đặc khu toàn quốc
           </p>
         </div>
         
@@ -393,7 +393,7 @@ const Address = () => {
                 <div className={cx('searchIcon')}>🔍</div>
                 <input
                   type="text"
-                  placeholder="Nhập tên xã, phường, thị trấn để tìm kiếm..."
+                  placeholder="Nhập tên xã, phường, dặc khu để tìm kiếm..."
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
                   className={cx('searchInput')}
@@ -437,8 +437,8 @@ const Address = () => {
                 <span className={cx('statValue', 'blue')}>{stats.phuong}</span>
               </div>
               <div className={cx('statItem')}>
-                <span className={cx('statLabel')}>Thị trấn:</span>
-                <span className={cx('statValue', 'yellow')}>{stats.thiTran}</span>
+                <span className={cx('statLabel')}>Đặc khu:</span>
+                <span className={cx('statValue', 'yellow')}>{stats.dackhu}</span>
               </div>
             </div>
           </div>
@@ -476,7 +476,7 @@ const Address = () => {
               <p>
                 {searchTerm 
                   ? `Không tìm thấy xã/phường nào với từ khóa "${searchTerm}"`
-                  : 'Nhập tên xã, phường, thị trấn để tìm kiếm trong toàn quốc'
+                  : 'Nhập tên xã, phường, đặc khu để tìm kiếm trong toàn quốc'
                 }
               </p>
             </>

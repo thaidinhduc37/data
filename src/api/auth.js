@@ -3,171 +3,108 @@ import directusClient from './directus.js';
 import config from '../config/index.js';
 
 class AuthService {
-  async login(email, password) {
-    try {
-      console.log('Attempting login to:', config.directus.apiUrl);
+  constructor() {
+    this.apiUrl = config.directus.apiUrl;
+    this.endpoints = {
+      login: '/admin/login',
+      logout: '/admin/logout', 
+      refresh: '/admin/refresh',
+      me: '/admin/me'
+    };
+  }
 
-      // Sử dụng endpoint auth/login của Directus
-      const loginUrl = `${config.directus.apiUrl}/admin/login`;
-      
-      const response = await fetch(loginUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          password: password
-        })
+  // Helper method for API calls
+  async apiCall(endpoint, options = {}) {
+    try {
+      const url = `${this.apiUrl}${endpoint}`;
+      const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
+
+      const token = directusClient.getToken();
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(url, {
+        ...options,
+        headers
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.errors?.[0]?.message || 
-                           `Login failed: ${response.status} ${response.statusText}`;
-        throw new Error(errorMessage);
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error?.errors?.[0]?.message || `Request failed: ${response.status}`);
       }
 
-      const loginData = await response.json();
-      
-      if (!loginData.data?.access_token) {
-        throw new Error('No access token received from server');
-      }
-
-      const { access_token, refresh_token, expires } = loginData.data;
-      
-      directusClient.setToken(access_token);
-      
-      const userInfo = await this.getCurrentUser();
-      
-      console.log('Login successful');
-      
-      return {
-        success: true,
-        data: {
-          token: access_token,
-          refreshToken: refresh_token,
-          expires: expires,
-          user: userInfo.data
-        },
-        error: null
-      };
-
+      return await response.json();
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error(`API Error (${endpoint}):`, error);
       return {
         success: false,
         data: null,
-        error: {
-          message: error.message,
-          details: error
-        }
+        error: { message: error.message }
       };
     }
+  }
+
+  async login(email, password) {
+    const result = await this.apiCall(this.endpoints.login, {
+      method: 'POST',
+      body: JSON.stringify({
+        email: email.trim(),
+        password
+      })
+    });
+
+    if (result.success === false) return result;
+
+    if (!result.data?.access_token) {
+      return {
+        success: false,
+        error: { message: 'No access token received' }
+      };
+    }
+
+    const { access_token, refresh_token, expires } = result.data;
+    directusClient.setToken(access_token);
+
+    const userInfo = await this.getCurrentUser();
+    
+    return {
+      success: true,
+      data: {
+        token: access_token,
+        refreshToken: refresh_token,
+        expires,
+        user: userInfo.data
+      }
+    };
   }
 
   async logout() {
-    try {
-      if (directusClient.isAuthenticated()) {
-        const logoutUrl = `${config.directus.apiUrl}/admin/logout`;
-        await fetch(logoutUrl, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${directusClient.getToken()}`
-          }
-        });
-      }
-      
-      directusClient.clearAuth();
-      console.log('Logout successful');
-      
-      return {
-        success: true,
-        data: null,
-        error: null
-      };
-    } catch (error) {
-      directusClient.clearAuth();
-      return {
-        success: false,
-        data: null,
-        error: {
-          message: error.message,
-          details: error
-        }
-      };
+    if (directusClient.isAuthenticated()) {
+      await this.apiCall(this.endpoints.logout, { method: 'POST' });
     }
+    
+    directusClient.clearAuth();
+    return { success: true };
   }
 
   async getCurrentUser() {
-    try {
-      const userUrl = `${config.directus.apiUrl}/admin/me`;
-      const response = await fetch(userUrl, {
-        headers: {
-          'Authorization': `Bearer ${directusClient.getToken()}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to get user info: ${response.status}`);
-      }
-
-      const userData = await response.json();
-      directusClient.setCurrentUser(userData.data);
-      
-      return {
-        success: true,
-        data: userData.data,
-        error: null
-      };
-    } catch (error) {
-      return {
-        success: false,
-        data: null,
-        error: {
-          message: error.message,
-          details: error
-        }
-      };
-    }
+    return await this.apiCall(this.endpoints.me);
   }
 
   async refreshToken() {
-    try {
-      const baseUrl = process.env.NODE_ENV === 'production' 
-        ? config.directus.apiUrl 
-        : '';
-      const refreshUrl = `${baseUrl}/admin/refresh`;
-      const response = await fetch(refreshUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${directusClient.getToken()}`
-        }
-      });
+    const result = await this.apiCall(this.endpoints.refresh, {
+      method: 'POST'
+    });
 
-      if (!response.ok) {
-        throw new Error('Token refresh failed');
-      }
-
-      const data = await response.json();
-      directusClient.setToken(data.data.access_token);
-      
-      return {
-        success: true,
-        data: data.data,
-        error: null
-      };
-    } catch (error) {
-      directusClient.clearAuth();
-      return {
-        success: false,
-        data: null,
-        error: {
-          message: error.message,
-          details: error
-        }
-      };
+    if (result.success && result.data?.access_token) {
+      directusClient.setToken(result.data.access_token);
     }
+
+    return result;
   }
 
   isLoggedIn() {
@@ -179,5 +116,4 @@ class AuthService {
   }
 }
 
-const authService = new AuthService();
-export default authService;
+export default new AuthService();

@@ -271,8 +271,7 @@ const Table = ({
     return (
       <div className={cx('pagination')}>
         <div className={cx('paginationInfo')}>
-          Hiển thị {startIndex + 1}-{Math.min(startIndex + itemsPerPage, sortedData.length)} 
-          trong tổng số {sortedData.length} bản ghi
+          Hiển thị {startIndex + 1}-{Math.min(startIndex + itemsPerPage, sortedData.length)} trong tổng số {sortedData.length} bản ghi
         </div>
         
         <div className={cx('paginationControls')}>

@@ -39,6 +39,19 @@ function NavBar({ isCollapsed, onToggle }) {
             ]
         },
         { 
+            key: 'denounce',
+            icon: 'fa-solid fa-scroll', 
+            label: 'Quản lý khiếu nại, tố cáo', 
+            protected: true,
+            submenu: [
+                { path: '/denounce/dashboard', label: 'Tổng quan' },
+                { path: '/denounce/reception', label: 'Tiếp nhận đơn, thư' },
+                { path: '/denounce/processing', label: 'Xử lý đơn, thư' },
+                { path: '/denounce/tracking', label: 'Theo dõi tiến trình' },
+                { path: '/denounce/reports', label: 'Báo cáo, thống kê' }
+            ]
+        },
+        { 
             key: 'news',
             icon: 'fas fa-newspaper', 
             label: 'Tin tức & Thông báo', 
@@ -73,17 +86,22 @@ function NavBar({ isCollapsed, onToggle }) {
             ]
         },
         { 
+            key: 'adress_management',
+            icon: 'fa-solid fa-map', 
+            label: 'Địa giới hành chính', 
+            protected: true,
+            submenu: [
+                { path: config.routes.address, label: 'Địa giới hành chính mới' },
+                { path: '', label: 'Tra cứu địa giới cũ' },
+                
+            ]
+        },
+        { 
             path: config.routes.contact, 
             icon: 'fas fa-phone', 
             label: 'Liên hệ', 
             public: true 
-        },
-        { 
-            path: config.routes.address, 
-            icon: 'fa-solid fa-map', 
-            label: 'Địa giới hành chính mới', 
-            public: true 
-        },
+        }
     ];
 
     const renderMenuItem = (item) => {

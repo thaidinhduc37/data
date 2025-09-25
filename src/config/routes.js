@@ -15,6 +15,13 @@ const routes = {
   postsView: '/posts/:id',
 
   // Posts management (có sub-routes)
+  dashboarddenounce: '/denounce/dashboard',
+  processingdenounce: '/denounce/processing',
+  receptiondenounce: '/denounce/reception',
+  reportsdenounce: '/denounce/reports',
+  trackingdenounce: '/denounce/tracking',
+
+  // Posts management (có sub-routes)
   schedule: '/schedule',
   timeoff: '/schedule/timeoff',
   plan: '/schedule/plan',
